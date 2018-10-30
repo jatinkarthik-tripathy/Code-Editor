@@ -28,19 +28,21 @@ public class Code_Editor {
     RSyntaxTextArea textArea;
     RTextScrollPane sp;
     JMenuBar mb;
-    JMenu fl, edt, run, help;
-    JMenuItem nw, op, sv, sv_as, ext, font, font_sz, shortcuts, lang, run_code, report, abt;
+    JMenu fl, edt, run, templates, help;
+    JMenuItem nw, op, sv, sv_as, ext, font, font_sz, lang, run_code, add_temp, see_temp, report, abt;
     String fnt = "monospaced";
     int fnt_size = 20;
     String path = null;
     String dir_path = null;
 
     Code_Editor() {
+
         f = new JFrame("Code Editor");
         textArea = new RSyntaxTextArea();
         textArea.setFont(new Font(fnt, Font.PLAIN, fnt_size));
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
         textArea.setCodeFoldingEnabled(true);
+        RSyntaxTextArea.setTemplatesEnabled(true);
         sp = new RTextScrollPane(textArea);
 
         mb = new JMenuBar();
@@ -48,6 +50,7 @@ public class Code_Editor {
         fl = new JMenu("File");
         edt = new JMenu("Prefs");
         run = new JMenu("Run");
+        templates = new JMenu("Templates");
         help = new JMenu("Help");
 
         nw = new JMenuItem("New");
@@ -55,29 +58,7 @@ public class Code_Editor {
         nw.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int n = JOptionPane.showConfirmDialog(
-                        null,
-                        "Save File?",
-                        "",
-                        JOptionPane.YES_NO_OPTION);
-                if (n == 0) {
-                    JFileChooser fileSaver = new JFileChooser();
-                    int ret = fileSaver.showDialog(null, "Save file");
-
-                    if (ret == JFileChooser.APPROVE_OPTION) {
-                        File file = fileSaver.getSelectedFile();
-                        try {
-                            FileWriter writer = new FileWriter(file.toString());
-                            BufferedWriter bw = new BufferedWriter(writer);
-                            textArea.write(bw);
-                            bw.close();
-                            textArea.setText("");
-                        } catch (Exception e2) {
-                        }
-                    }
-                } else {
-                    textArea.setText("");
-                }
+                new new_file(textArea);
             }
         });
         op = new JMenuItem("Open");
@@ -85,26 +66,7 @@ public class Code_Editor {
         op.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JFileChooser fileopen = new JFileChooser();
-                int ret = fileopen.showDialog(null, "Open file");
-
-                if (ret == JFileChooser.APPROVE_OPTION) {
-                    File file = fileopen.getSelectedFile();
-                    try {
-                        path = file.toString();
-                        System.out.println(path);
-                        dir_path = path.replace(file.getName(), "");
-                        FileReader reader = new FileReader(path);
-                        BufferedReader br = new BufferedReader(reader);
-                        textArea.read(br, null);
-                        br.close();
-                    } catch (FileNotFoundException ex) {
-                        Logger.getLogger(Code_Editor.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (IOException ex) {
-                        Logger.getLogger(Code_Editor.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-
-                }
+                new open_file(path, dir_path, textArea);
             }
         });
         sv = new JMenuItem("Save");
@@ -112,32 +74,7 @@ public class Code_Editor {
         sv.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                if (path != null) {
-                    try {
-                        FileWriter writer = new FileWriter(path);
-                        BufferedWriter bw = new BufferedWriter(writer);
-                        textArea.write(bw);
-                        bw.close();
-                    } catch (Exception e2) {
-                    }
-                }
-                if (path == null) {
-                    JFileChooser fileSaver = new JFileChooser();
-                    int ret = fileSaver.showDialog(null, "Save file");
-
-                    if (ret == JFileChooser.APPROVE_OPTION) {
-                        File file = fileSaver.getSelectedFile();
-                        try {
-                            path = file.toString();
-                            dir_path = path.replace(file.getName(), "");
-                            FileWriter writer = new FileWriter(file.toString());
-                            BufferedWriter bw = new BufferedWriter(writer);
-                            textArea.write(bw);
-                            bw.close();
-                        } catch (Exception e2) {
-                        }
-                    }
-                }
+                new save_file(path, dir_path, textArea);
             }
 
         });
@@ -145,21 +82,7 @@ public class Code_Editor {
         sv_as.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JFileChooser fileSaver = new JFileChooser();
-                int ret = fileSaver.showDialog(null, "Save file");
-
-                if (ret == JFileChooser.APPROVE_OPTION) {
-                    File file = fileSaver.getSelectedFile();
-                    try {
-                        path = file.toString();
-                        dir_path = path.replace(file.getName(), "");
-                        FileWriter writer = new FileWriter(file.toString());
-                        BufferedWriter bw = new BufferedWriter(writer);
-                        textArea.write(bw);
-                        bw.close();
-                    } catch (Exception e2) {
-                    }
-                }
+                new save_file_as(path, dir_path, textArea);
             }
 
         });
@@ -190,14 +113,7 @@ public class Code_Editor {
         font.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String[] font_types = {"Sanserif", "Serif", "Monospaced", "Dialog"};
-                JComboBox fcb = new JComboBox(font_types);
-
-                int ret = JOptionPane.showConfirmDialog(null, fcb, "Please Select", JOptionPane.YES_NO_OPTION);
-                if (ret == 0) {
-                    fnt = fcb.getSelectedItem().toString();
-                    textArea.setFont(new Font(fnt, Font.PLAIN, fnt_size));
-                }
+                new font(fnt, fnt_size, textArea);
             }
 
         });
@@ -205,35 +121,16 @@ public class Code_Editor {
         font_sz.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String[] font_sizes = {"15", "16", "17", "18", "19", "20",
-                    "21", "22", "23", "24", "25", "26", "27", "28", "29", "30"};
-                JComboBox scb = new JComboBox(font_sizes);
+                new size(fnt, fnt_size, textArea);
 
-                int ret = JOptionPane.showConfirmDialog(null, scb, "Please Select", JOptionPane.YES_NO_OPTION);
-                if (ret == 0) {
-                    fnt_size = Integer.valueOf(scb.getSelectedItem().toString());
-                    textArea.setFont(new Font(fnt, Font.PLAIN, fnt_size));
-                }
             }
 
         });
-        shortcuts = new JMenuItem("Keyboard Shortcuts");
         lang = new JMenuItem("Language");
         lang.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                String[] options = {"C++", "JAVA", "PYTHON"};
-                JComboBox cb = new JComboBox(options);
-                int ret = JOptionPane.showConfirmDialog(null, cb, "Select Your Preference", JOptionPane.YES_NO_OPTION);
-                if (ret == 0) {
-                    if (cb.getSelectedItem().toString().equals("C++")) {
-                        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_CPLUSPLUS);
-                    } else if (cb.getSelectedItem().toString().equals("JAVA")) {
-                        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-                    } else if (cb.getSelectedItem().toString().equals("PYTHON")) {
-                        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
-                    }
-                }
+                new lang(textArea);
             }
         });
 
@@ -246,23 +143,24 @@ public class Code_Editor {
         run_code.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (dir_path != null) {
-                    try {
-                        Runtime rt = Runtime.getRuntime();
-                        rt.exec("cmd.exe /c start", null, new File(dir_path));
-                    } catch (IOException ex) {
-                        Logger.getLogger(Code_Editor.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please Save File First");
-                }
+                new op_cmd(dir_path);
             }
         });
 
         run.add(run_code);
 
-        report = new JMenuItem("Report Issue...");
+        add_temp = new JMenuItem("Add Template");
+        add_temp.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                new templates().setVisible(true);
+            }
 
+        });
+
+        templates.add(add_temp);
+
+        report = new JMenuItem("Report Issue...");
         report.addActionListener(
                 new ActionListener() {
             @Override
@@ -285,12 +183,12 @@ public class Code_Editor {
             ) {
                 JOptionPane.showMessageDialog(
                         null,
-                        "                         Made by\n"
-                        + "              Jatin Karthik Tripathy \n"
-                        + "                       (c) 2018\n"
-                        + "         If you feel you make it better,\n"
-                        + "Feel free to check out the source code \n"
-                        + "                    [ github link ]"
+                        "                                    Made by\n"
+                        + "                         Jatin Karthik Tripathy \n"
+                        + "                                  (c) 2018\n"
+                        + "                    If you feel you make it better,\n"
+                        + "            Feel free to check out the source code \n"
+                        + "https://github.com/jatinkarthik-tripathy/Code-Editor"
                 );
             }
 
@@ -308,6 +206,8 @@ public class Code_Editor {
 
         mb.add(run);
 
+        mb.add(templates);
+
         mb.add(help);
 
         f.add(mb);
@@ -320,10 +220,8 @@ public class Code_Editor {
 
         f.pack();
 
-        f.setSize(
-                800, 600);
-        f.setVisible(
-                true);
+        f.setSize(800, 600);
+        f.setVisible(true);
     }
 
     public static void main(String[] args) {
