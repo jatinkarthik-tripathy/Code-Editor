@@ -183,7 +183,7 @@ public class Code_Editor {
             ) {
                 JOptionPane.showMessageDialog(
                         null,
-                        "                                    Made by\n"
+                        "                                     Made by\n"
                         + "                         Jatin Karthik Tripathy \n"
                         + "                                  (c) 2018\n"
                         + "                    If you feel you make it better,\n"
@@ -233,6 +233,7 @@ public class Code_Editor {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 new Code_Editor();
+
             }
         });
     }
