@@ -24,23 +24,23 @@ import org.fife.ui.rsyntaxtextarea.*;
  */
 public class Code_Editor {
 
-    JFrame f;
-    RSyntaxTextArea textArea;
-    RTextScrollPane sp;
-    JMenuBar mb;
-    JMenu fl, edt, run, templates, help;
-    JMenuItem nw, op, sv, sv_as, ext, font, font_sz, lang, run_code, add_temp, see_temp, report, abt;
-    String fnt = "monospaced";
-    int fnt_size = 20;
-    String path = null;
-    String dir_path = null;
+    public JFrame f;
+    public RSyntaxTextArea textArea;
+    public RTextScrollPane sp;
+    public JMenuBar mb;
+    public JMenu fl, edt, run, templates, help;
+    public JMenuItem nw, op, sv, sv_as, ext, font, font_sz, lang, run_code, add_temp, see_temp, report, abt;
+    public String fnt = "monospaced";
+    public int fnt_size = 20;
+    public String path = null;
+    public String dir_path = null;
 
     Code_Editor() {
 
         f = new JFrame("Code Editor");
         textArea = new RSyntaxTextArea();
         textArea.setFont(new Font(fnt, Font.PLAIN, fnt_size));
-        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
         textArea.setCodeFoldingEnabled(true);
         RSyntaxTextArea.setTemplatesEnabled(true);
         sp = new RTextScrollPane(textArea);
@@ -58,7 +58,29 @@ public class Code_Editor {
         nw.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new new_file(textArea);
+                int n = JOptionPane.showConfirmDialog(
+                        null,
+                        "Save File?",
+                        "",
+                        JOptionPane.YES_NO_OPTION);
+                if (n == 0) {
+                    JFileChooser fileSaver = new JFileChooser();
+                    int ret = fileSaver.showDialog(null, "Save file");
+
+                    if (ret == JFileChooser.APPROVE_OPTION) {
+                        File file = fileSaver.getSelectedFile();
+                        try {
+                            FileWriter writer = new FileWriter(file.toString());
+                            BufferedWriter bw = new BufferedWriter(writer);
+                            textArea.write(bw);
+                            bw.close();
+                            textArea.setText("");
+                        } catch (Exception e2) {
+                        }
+                    }
+                } else {
+                    textArea.setText("");
+                }
             }
         });
         op = new JMenuItem("Open");
@@ -66,7 +88,26 @@ public class Code_Editor {
         op.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new open_file(path, dir_path, textArea);
+                JFileChooser fileopen = new JFileChooser();
+                int ret = fileopen.showDialog(null, "Open file");
+
+                if (ret == JFileChooser.APPROVE_OPTION) {
+                    File file = fileopen.getSelectedFile();
+                    try {
+                        path = file.toString();
+                        System.out.println(path);
+                        dir_path = path.replace(file.getName(), "");
+                        FileReader reader = new FileReader(path);
+                        BufferedReader br = new BufferedReader(reader);
+                        textArea.read(br, null);
+                        br.close();
+                    } catch (FileNotFoundException ex) {
+                        Logger.getLogger(Code_Editor.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IOException ex) {
+                        Logger.getLogger(Code_Editor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+                }
             }
         });
         sv = new JMenuItem("Save");
@@ -74,7 +115,32 @@ public class Code_Editor {
         sv.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                new save_file(path, dir_path, textArea);
+                if (path != null) {
+                    try {
+                        FileWriter writer = new FileWriter(path);
+                        BufferedWriter bw = new BufferedWriter(writer);
+                        textArea.write(bw);
+                        bw.close();
+                    } catch (Exception e2) {
+                    }
+                }
+                if (path == null) {
+                    JFileChooser fileSaver = new JFileChooser();
+                    int ret = fileSaver.showDialog(null, "Save file");
+
+                    if (ret == JFileChooser.APPROVE_OPTION) {
+                        File file = fileSaver.getSelectedFile();
+                        try {
+                            path = file.toString();
+                            dir_path = path.replace(file.getName(), "");
+                            FileWriter writer = new FileWriter(file.toString());
+                            BufferedWriter bw = new BufferedWriter(writer);
+                            textArea.write(bw);
+                            bw.close();
+                        } catch (Exception e2) {
+                        }
+                    }
+                }
             }
 
         });
@@ -82,7 +148,21 @@ public class Code_Editor {
         sv_as.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new save_file_as(path, dir_path, textArea);
+                JFileChooser fileSaver = new JFileChooser();
+                int ret = fileSaver.showDialog(null, "Save file");
+
+                if (ret == JFileChooser.APPROVE_OPTION) {
+                    File file = fileSaver.getSelectedFile();
+                    try {
+                        path = file.toString();
+                        dir_path = path.replace(file.getName(), "");
+                        FileWriter writer = new FileWriter(file.toString());
+                        BufferedWriter bw = new BufferedWriter(writer);
+                        textArea.write(bw);
+                        bw.close();
+                    } catch (Exception e2) {
+                    }
+                }
             }
 
         });
@@ -113,7 +193,14 @@ public class Code_Editor {
         font.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new font(fnt, fnt_size, textArea);
+                String[] font_types = {"Sanserif", "Serif", "Monospaced", "Dialog"};
+                JComboBox fcb = new JComboBox(font_types);
+
+                int ret = JOptionPane.showConfirmDialog(null, fcb, "Please Select", JOptionPane.YES_NO_OPTION);
+                if (ret == 0) {
+                    fnt = fcb.getSelectedItem().toString();
+                    textArea.setFont(new Font(fnt, Font.PLAIN, fnt_size));
+                }
             }
 
         });
@@ -121,7 +208,14 @@ public class Code_Editor {
         font_sz.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new size(fnt, fnt_size, textArea);
+                String[] font_types = {"Sanserif", "Serif", "Monospaced", "Dialog"};
+                JComboBox fcb = new JComboBox(font_types);
+
+                int ret = JOptionPane.showConfirmDialog(null, fcb, "Please Select", JOptionPane.YES_NO_OPTION);
+                if (ret == 0) {
+                    fnt = fcb.getSelectedItem().toString();
+                    textArea.setFont(new Font(fnt, Font.PLAIN, fnt_size));
+                }
 
             }
 
@@ -130,7 +224,18 @@ public class Code_Editor {
         lang.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                new lang(textArea);
+                String[] options = {"C++", "JAVA", "PYTHON"};
+                JComboBox cb = new JComboBox(options);
+                int ret = JOptionPane.showConfirmDialog(null, cb, "Select Your Preference", JOptionPane.YES_NO_OPTION);
+                if (ret == 0) {
+                    if (cb.getSelectedItem().toString().equals("C++")) {
+                        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_CPLUSPLUS);
+                    } else if (cb.getSelectedItem().toString().equals("JAVA")) {
+                        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+                    } else if (cb.getSelectedItem().toString().equals("PYTHON")) {
+                        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
+                    }
+                }
             }
         });
 
@@ -143,7 +248,16 @@ public class Code_Editor {
         run_code.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new op_cmd(dir_path);
+                if (dir_path != null) {
+                    try {
+                        Runtime rt = Runtime.getRuntime();
+                        rt.exec("cmd.exe /c start", null, new File(dir_path));
+                    } catch (IOException ex) {
+                        Logger.getLogger(Code_Editor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please Save File First");
+                }
             }
         });
 
